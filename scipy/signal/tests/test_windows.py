@@ -701,9 +701,7 @@ def test_needs_params():
     for winstr in ['kaiser', 'ksr', 'gaussian', 'gauss', 'gss',
                    'general gaussian', 'general_gaussian',
                    'general gauss', 'general_gauss', 'ggs',
-                   'dss', 'dpss',
-                   'chebwin', 'cheb', 'exponential', 'poisson', 'tukey',
-                   'tuk', 'dpss']:
+                   'dss', 'dpss', 'chebwin', 'cheb']:
         assert_raises(ValueError, get_window, winstr, 7)
 
 
