@@ -2085,13 +2085,12 @@ def get_window(window, Nx, fftbins=True):
     - `~scipy.signal.windows.barthann`
     - `~scipy.signal.windows.exponential`
     - `~scipy.signal.windows.tukey`
+    - `~scipy.signal.windows.taylor`
     - `~scipy.signal.windows.kaiser` (needs beta)
     - `~scipy.signal.windows.gaussian` (needs standard deviation)
     - `~scipy.signal.windows.general_gaussian` (needs power, width)
     - `~scipy.signal.windows.dpss` (needs normalized half-bandwidth)
     - `~scipy.signal.windows.chebwin` (needs attenuation)
-    - `~scipy.signal.windows.taylor` (needs number of constant sidelobes,
-      sidelobe level)
 
     If the window requires no parameters, then `window` can be a string.
 
