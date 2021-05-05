@@ -2442,7 +2442,7 @@ class RegularGridInterpolator:
     # see https://github.com/JohannesBuchner/regulargrid
 
     def __init__(self, points, values, method="linear", bounds_error=True,
-                 fill_value=np.nan):
+                 fill_value=np.nan, *, assume_uniform=False):
         if method not in ["linear", "nearest"]:
             raise ValueError("Method '%s' is not defined" % method)
         self.method = method
@@ -2481,6 +2481,7 @@ class RegularGridInterpolator:
                                  "dimension %d" % (len(p), values.shape[i], i))
         self.grid = tuple([np.asarray(p) for p in points])
         self.values = values
+        self.assume_uniform = assume_uniform
 
     def __call__(self, xi, method=None):
         """

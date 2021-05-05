@@ -217,3 +217,29 @@ class Interpolate(Benchmark):
             interpolate.interp1d(self.x, self.y, kind="linear")
         else:
             np.interp(self.z, self.x, self.y)
+
+
+class RegularGridInterpolator(Benchmark):
+    param_names = ['assume_uniform']
+    params = [
+        [True, False],
+    ]
+
+    def setup(self, assume_uniform):
+        def f(x, y, z):
+            return 2 * x ** 3 + 3 * y ** 2 - z
+        x = np.linspace(1, 4, 11)
+        y = np.linspace(4, 7, 22)
+        z = np.linspace(7, 9, 33)
+        xg, yg, zg = np.meshgrid(x, y, z, indexing='ij', sparse=True)
+        data = f(xg, yg, zg)
+        self.interp = interpolate.RegularGridInterpolator(
+            (x, y, z), data, assume_uniform=assume_uniform)
+
+        px = np.linspace(1, 4, 100)
+        py = np.linspace(4, 7, 100)
+        pz = np.linspace(7, 9, 100)
+        self.pts = np.concatenate([px, py, pz]).reshape((3, 100)).T
+
+    def time_interpolate(self, assume_uniform):
+        self.interp(self.pts)
