@@ -222,24 +222,30 @@ class Interpolate(Benchmark):
 class RegularGridInterpolator(Benchmark):
     param_names = ['assume_uniform']
     params = [
-        [True, False],
+        [False, True],
     ]
 
     def setup(self, assume_uniform):
-        def f(x, y, z):
-            return 2 * x ** 3 + 3 * y ** 2 - z
-        x = np.linspace(1, 4, 11)
-        y = np.linspace(4, 7, 22)
-        z = np.linspace(7, 9, 33)
-        xg, yg, zg = np.meshgrid(x, y, z, indexing='ij', sparse=True)
-        data = f(xg, yg, zg)
+        def f(x, y, z, i, j, k):
+            return 2 * x ** 3 + 3 * y ** 2 - z + i + 2*j + 3*k
+        x = np.linspace(1, 4, 5)
+        y = np.linspace(4, 7, 5)
+        z = np.linspace(7, 9, 5)
+        i = np.linspace(1, 4, 5)
+        j = np.linspace(4, 7, 5)
+        k = np.linspace(7, 9, 5)
+        xg, yg, zg, ig, jg, kg = np.meshgrid(x, y, z, i, j, k, indexing='ij', sparse=True)
+        data = f(xg, yg, zg, ig, jg, kg)
         self.interp = interpolate.RegularGridInterpolator(
-            (x, y, z), data, assume_uniform=assume_uniform)
+            (x, y, z, i, j, k), data, assume_uniform=assume_uniform)
 
-        px = np.linspace(1, 4, 100)
-        py = np.linspace(4, 7, 100)
-        pz = np.linspace(7, 9, 100)
-        self.pts = np.concatenate([px, py, pz]).reshape((3, 100)).T
+        px = np.linspace(1, 4, 10)
+        py = np.linspace(4, 7, 10)
+        pz = np.linspace(7, 9, 10)
+        pi = np.linspace(1, 4, 10)
+        pj = np.linspace(4, 7, 10)
+        pk = np.linspace(7, 9, 10)
+        self.pts = np.concatenate([px, py, pz, pi, pj, pk]).reshape((6, 10)).T
 
     def time_interpolate(self, assume_uniform):
         self.interp(self.pts)

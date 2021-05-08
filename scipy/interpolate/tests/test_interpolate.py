@@ -2659,6 +2659,27 @@ class TestRegularGridInterpolator:
             interp = interpolator(xy, z)
             interp(XY)
 
+    def test_assume_uniform(self):
+        def f(x, y, z):
+            return 2 * x ** 3 + 3 * y ** 2 - z
+
+        x = np.linspace(1, 4, 11)
+        y = np.linspace(4, 7, 22)
+        z = np.linspace(7, 9, 33)
+        xg, yg, zg = np.meshgrid(x, y, z, indexing='ij', sparse=True)
+        data = f(xg, yg, zg)
+        interp1 = RegularGridInterpolator((x, y, z), data,
+                                          assume_uniform=False)
+        interp2 = RegularGridInterpolator((x, y, z), data,
+                                          assume_uniform=True)
+
+        px = np.linspace(1, 4, 10)
+        py = np.linspace(4, 7, 10)
+        pz = np.linspace(7, 9, 10)
+        pts = np.concatenate([px, py, pz]).reshape((3, 10)).T
+
+        assert_allclose(interp1(pts), interp2(pts))
+
 
 class MyValue:
     """

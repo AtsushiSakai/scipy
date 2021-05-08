@@ -2482,6 +2482,9 @@ class RegularGridInterpolator:
         self.grid = tuple([np.asarray(p) for p in points])
         self.values = values
         self.assume_uniform = assume_uniform
+        self.dx = [g[1]-g[0] for g in self.grid]
+        self.max_indexes = [g.size - 2 for g in self.grid]
+        self.min_indexes = len(self.max_indexes) * [0]
 
     def __call__(self, xi, method=None):
         """
@@ -2518,7 +2521,10 @@ class RegularGridInterpolator:
                     raise ValueError("One of the requested xi is out of bounds "
                                      "in dimension %d" % i)
 
-        indices, norm_distances, out_of_bounds = self._find_indices(xi.T)
+        if self.assume_uniform:
+            indices, norm_distances, out_of_bounds = self._find_indices_with_assume_uniform(xi)
+        else:
+            indices, norm_distances, out_of_bounds = self._find_indices(xi.T)
         if method == "linear":
             result = self._evaluate_linear(indices,
                                            norm_distances,
@@ -2552,6 +2558,15 @@ class RegularGridInterpolator:
                    for i, yi in zip(indices, norm_distances)]
         return self.values[tuple(idx_res)]
 
+    def _find_indices_with_assume_uniform(self, xi):
+        # check for out of bounds xi
+        out_of_bounds = np.zeros((xi.shape[1]), dtype=bool)
+
+        quo, rem = np.divmod(xi-xi[0, :], self.dx)
+        np.clip(quo, self.min_indexes, self.max_indexes, out=quo)
+
+        return list(quo.astype("int64").T), list((rem/self.dx).T), out_of_bounds
+
     def _find_indices(self, xi):
         # find relevant edges between which xi are situated
         indices = []
@@ -2559,17 +2574,18 @@ class RegularGridInterpolator:
         norm_distances = []
         # check for out of bounds xi
         out_of_bounds = np.zeros((xi.shape[1]), dtype=bool)
+
         # iterate through dimensions
         for x, grid in zip(xi, self.grid):
             i = np.searchsorted(grid, x) - 1
             i[i < 0] = 0
             i[i > grid.size - 2] = grid.size - 2
             indices.append(i)
-            norm_distances.append((x - grid[i]) /
-                                  (grid[i + 1] - grid[i]))
+            norm_distances.append((x - grid[i]) / (grid[i + 1] - grid[i]))
             if not self.bounds_error:
                 out_of_bounds += x < grid[0]
                 out_of_bounds += x > grid[-1]
+
         return indices, norm_distances, out_of_bounds
 
 
