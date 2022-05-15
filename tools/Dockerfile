@@ -55,3 +55,6 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python3.10 get-pi
 
 # create a symbolic link for `python` command
 RUN ln -nsf /usr/bin/python3 /usr/bin/python
+
+# add env for shell
+ENV SHELL=/usr/bin/bash
