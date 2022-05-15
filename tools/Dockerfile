@@ -34,11 +34,11 @@ FROM ubuntu:jammy
 RUN apt-get update && apt-get install -y \
 	python3-pip \
 	build-essential \
-    pkg-config \
-    libopenblas-dev \
-    ninja-build \
-    wbritish \
-    vim \
+	pkg-config \
+	libopenblas-dev \
+	ninja-build \
+	wbritish \
+	vim \
 	libatlas-base-dev \
 	gfortran \
 	liblapack-dev \
