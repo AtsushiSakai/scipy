@@ -29,7 +29,7 @@ __all__ = ['mvsdist',
            'boxcox_llf', 'boxcox', 'boxcox_normmax', 'boxcox_normplot',
            'shapiro', 'anderson', 'ansari', 'bartlett', 'levene',
            'fligner', 'mood', 'wilcoxon', 'median_test',
-           'circmean', 'circvar', 'circstd', 'anderson_ksamp',
+           'circmean', 'circvar', 'circstd', 'circmod', 'anderson_ksamp',
            'yeojohnson_llf', 'yeojohnson', 'yeojohnson_normmax',
            'yeojohnson_normplot', 'directional_stats',
            'false_discovery_control'
@@ -4313,9 +4313,10 @@ def _circfuncs_common(samples, high, low, nan_policy='propagate'):
         return np.nan, np.asarray(np.nan), np.asarray(np.nan), None
 
     # Recast samples as radians that range between 0 and 2 pi and calculate
+    samples_rad = (samples - low)*2.*pi / (high - low)
     # the sine and cosine
-    sin_samp = sin((samples - low)*2.*pi / (high - low))
-    cos_samp = cos((samples - low)*2.*pi / (high - low))
+    sin_samp = sin(samples_rad)
+    cos_samp = cos(samples_rad)
 
     # Apply the NaN policy
     contains_nan, nan_policy = _contains_nan(samples, nan_policy)
@@ -4327,7 +4328,7 @@ def _circfuncs_common(samples, high, low, nan_policy='propagate'):
     else:
         mask = None
 
-    return samples, sin_samp, cos_samp, mask
+    return samples_rad, sin_samp, cos_samp, mask
 
 
 def circmean(samples, high=2*pi, low=0, axis=None, nan_policy='propagate'):
@@ -4617,6 +4618,42 @@ def circstd(samples, high=2*pi, low=0, axis=None, nan_policy='propagate', *,
     if not normalize:
         res *= (high-low)/(2.*pi)  # [1] (2.3.14) w/ (2.3.7)
     return res
+
+def circmod(samples, *, high=2 * pi, low=0, nan_policy='propagate'):
+    """
+    Compute the circular modulo values for samples assumed to be in the
+    range [low to high].
+
+    Parameters
+    ----------
+    samples : array_like
+        Input array.
+    high : float or int, optional
+        High boundary for the sample range. Default is ``2*pi``.
+    low : float or int, optional
+        Low boundary for the sample range. Default is ``0``.
+    nan_policy : {'propagate', 'raise', 'omit'}, optional
+        Defines how to handle when input contains nan. 'propagate' returns nan,
+        'raise' throws an error, 'omit' performs the calculations ignoring nan
+        values. Default is 'propagate'.
+
+    Returns
+    -------
+    circmod : arrasy
+        Circular modulo values.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from scipy.stats import circmod
+    >>> circmod([355, 5, 2, 359, 10, 350], high=180, low=-180)
+    array([-5.,  5.,  2., -1., 10., -10.])
+
+    """
+    samples_rad, sin_samp, cos_samp, mask = _circfuncs_common(samples, high, low,
+                                                              nan_policy=nan_policy)
+    mod_angle = samples_rad % (2 * np.pi)
+    return mod_angle * (high - low) / pi / 2.0 + low
 
 
 class DirectionalStats:

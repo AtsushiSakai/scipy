@@ -2249,7 +2249,8 @@ class TestCircFuncs:
     @pytest.mark.parametrize("test_func,expected",
                              [(stats.circmean, 0.167690146),
                               (stats.circvar, 0.006455174270186603),
-                              (stats.circstd, 6.520702116)])
+                              (stats.circstd, 6.520702116),
+                              (stats.circmod, [355, 5, 2, 359, 10, 350])])
     def test_circfuncs(self, test_func, expected):
         x = np.array([355, 5, 2, 359, 10, 350])
         assert_allclose(test_func(x, high=360), expected, rtol=1e-7)
@@ -2335,7 +2336,8 @@ class TestCircFuncs:
     @pytest.mark.parametrize("test_func,expected",
                              [(stats.circmean, 0.167690146),
                               (stats.circvar, 0.006455174270186603),
-                              (stats.circstd, 6.520702116)])
+                              (stats.circstd, 6.520702116),
+                              (stats.circmod, [355, 5, 2, 359, 10, 350])])
     def test_circfuncs_array_like(self, test_func, expected):
         x = [355, 5, 2, 359, 10, 350]
         assert_allclose(test_func(x, high=360), expected, rtol=1e-7)
@@ -2406,14 +2408,15 @@ class TestCircFuncs:
     @pytest.mark.parametrize("test_func,expected",
                              [(stats.circmean, 0.167690146),
                               (stats.circvar, 0.006455174270186603),
-                              (stats.circstd, 6.520702116)])
+                              (stats.circstd, 6.520702116),
+                              (stats.circmod, [355, 5, 2, 359, 10, 350, np.nan])])
     def test_nan_omit(self, test_func, expected):
         x = [355, 5, 2, 359, 10, 350, np.nan]
         assert_allclose(test_func(x, high=360, nan_policy='omit'),
                         expected, rtol=1e-7)
 
     @pytest.mark.parametrize("test_func", [stats.circmean, stats.circvar,
-                                           stats.circstd])
+                                           stats.circstd, stats.circstd])
     def test_nan_omit_all(self, test_func):
         x = [np.nan, np.nan, np.nan, np.nan, np.nan]
         assert_(np.isnan(test_func(x, nan_policy='omit')))
@@ -2432,7 +2435,7 @@ class TestCircFuncs:
                               np.array([[355, 5, 2, 359, 10, 350, np.nan],
                                         [351, 7, 4, 352, np.nan, 9, 349]])])
     @pytest.mark.parametrize("test_func", [stats.circmean, stats.circvar,
-                                           stats.circstd])
+                                           stats.circstd, stats.circmod])
     def test_nan_raise(self, test_func, x):
         assert_raises(ValueError, test_func, x, high=360, nan_policy='raise')
 
@@ -2441,7 +2444,7 @@ class TestCircFuncs:
                               np.array([[355, 5, 2, 359, 10, 350, np.nan],
                                         [351, 7, 4, 352, np.nan, 9, 349]])])
     @pytest.mark.parametrize("test_func", [stats.circmean, stats.circvar,
-                                           stats.circstd])
+                                           stats.circstd, stats.circmod])
     def test_bad_nan_policy(self, test_func, x):
         assert_raises(ValueError, test_func, x, high=360, nan_policy='foobar')
 
@@ -2465,6 +2468,21 @@ class TestCircFuncs:
         assert_equal(stats.circmean(x, high=180), 170.0)
         assert_allclose(stats.circvar(x, high=180), 0.2339555554617, rtol=1e-7)
         assert_allclose(stats.circstd(x, high=180), 20.91551378, rtol=1e-7)
+        assert_allclose(stats.circmod(x, high=180), [150, 10], rtol=1e-7)
+
+    @pytest.mark.parametrize("input, high, low, expected",
+                             [([355, 5, 2, 359, 10, 350], 180, -180, [-5, 5, 2, -1, 10, -10]),
+                              ([355, 5, 2, 359, 10, 350], 360, 0, [355, 5, 2, 359, 10, 350]),
+                              (np.deg2rad([355, 5, 2, 359, 10, 350]), 2. * np.pi, 0,
+                               np.deg2rad([355, 5, 2, 359, 10, 350])),
+                              (np.deg2rad([355, 5, 2, 359, 10, 350]), np.pi, -np.pi,
+                               np.deg2rad([-5, 5, 2, -1, 10, -10])),
+                              ([[355, 5, 2], [359, 10, 350]], 180, -180, [[-5, 5, 2], [-1, 10, -10]]),
+                              ([], 2.*np.pi, 0, []),
+                              ([361, np.nan], 360, 0, [1.0, np.nan]),
+                              ])
+    def test_circmod(self, input, high, low, expected):
+        assert_allclose(stats.circmod(input, high=high, low=low), expected, rtol=1e-7)
 
 
 class TestMedianTest:
