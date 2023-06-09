@@ -2249,7 +2249,8 @@ class TestCircFuncs:
     @pytest.mark.parametrize("test_func,expected",
                              [(stats.circmean, 0.167690146),
                               (stats.circvar, 0.006455174270186603),
-                              (stats.circstd, 6.520702116)])
+                              (stats.circstd, 6.520702116),
+                              (stats.circdiff, [10., -3., -3., 11, -20])])
     def test_circfuncs(self, test_func, expected):
         x = np.array([355, 5, 2, 359, 10, 350])
         assert_allclose(test_func(x, high=360), expected, rtol=1e-7)
@@ -2274,7 +2275,8 @@ class TestCircFuncs:
     @pytest.mark.parametrize("test_func, numpy_func",
                              [(stats.circmean, np.mean),
                               (stats.circvar, np.var),
-                              (stats.circstd, np.std)])
+                              (stats.circstd, np.std),
+                              (stats.circdiff, np.diff)])
     def test_circfuncs_close(self, test_func, numpy_func):
         # circfuncs should handle very similar inputs (gh-12740)
         x = np.array([0.12675364631578953] * 10 + [0.12675365920187928] * 100)
@@ -2335,13 +2337,14 @@ class TestCircFuncs:
     @pytest.mark.parametrize("test_func,expected",
                              [(stats.circmean, 0.167690146),
                               (stats.circvar, 0.006455174270186603),
-                              (stats.circstd, 6.520702116)])
+                              (stats.circstd, 6.520702116),
+                              (stats.circdiff, [10, -3, -3, 11, -20])])
     def test_circfuncs_array_like(self, test_func, expected):
         x = [355, 5, 2, 359, 10, 350]
         assert_allclose(test_func(x, high=360), expected, rtol=1e-7)
 
     @pytest.mark.parametrize("test_func", [stats.circmean, stats.circvar,
-                                           stats.circstd])
+                                           stats.circstd, stats.circdiff])
     def test_empty(self, test_func):
         assert_(np.isnan(test_func([])))
 
@@ -2406,7 +2409,8 @@ class TestCircFuncs:
     @pytest.mark.parametrize("test_func,expected",
                              [(stats.circmean, 0.167690146),
                               (stats.circvar, 0.006455174270186603),
-                              (stats.circstd, 6.520702116)])
+                              (stats.circstd, 6.520702116),
+                              (stats.circdiff, [10.,  -3.,  -3.,  11., -20.])])
     def test_nan_omit(self, test_func, expected):
         x = [355, 5, 2, 359, 10, 350, np.nan]
         assert_allclose(test_func(x, high=360, nan_policy='omit'),

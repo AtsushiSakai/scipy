@@ -29,7 +29,7 @@ __all__ = ['mvsdist',
            'boxcox_llf', 'boxcox', 'boxcox_normmax', 'boxcox_normplot',
            'shapiro', 'anderson', 'ansari', 'bartlett', 'levene',
            'fligner', 'mood', 'wilcoxon', 'median_test',
-           'circmean', 'circvar', 'circstd', 'anderson_ksamp',
+           'circmean', 'circvar', 'circstd', 'circdiff', 'anderson_ksamp',
            'yeojohnson_llf', 'yeojohnson', 'yeojohnson_normmax',
            'yeojohnson_normplot', 'directional_stats',
            'false_discovery_control'
@@ -4616,6 +4616,60 @@ def circstd(samples, high=2*pi, low=0, axis=None, nan_policy='propagate', *,
     res = sqrt(-2*log(R))
     if not normalize:
         res *= (high-low)/(2.*pi)  # [1] (2.3.14) w/ (2.3.7)
+    return res
+
+
+def circdiff(samples, *, high=2*pi, low=0, axis=0, nan_policy='propagate'):
+    """
+    Compute the circular diffierences for samples assumed to be in the
+    range [low to high].
+
+    Parameters
+    ----------
+    samples : array_like
+        Input array.
+    high : float or int, optional
+        High boundary for the sample range. Default is ``2*pi``.
+    low : float or int, optional
+        Low boundary for the sample range. Default is 0.
+    axis : int, optional
+        Axis along which diffierences are computed. The default is 0.
+    nan_policy : {'propagate', 'raise', 'omit'}, optional
+        Defines how to handle when input contains nan. 'propagate' returns nan,
+        'raise' throws an error, 'omit' performs the calculations ignoring nan
+        values. Default is 'propagate'.
+
+    Returns
+    -------
+    circdiff : array
+        Circular standard deviation.
+
+    See Also
+    --------
+    circmean : Circular mean.
+    circvar : Circular variance.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from scipy.stats import circdiff
+    >>> samples = np.array([355, 5, 2, 359, 10, 350])
+    >>> circdiff(samples)
+    array([10, -3, -3, 11, -20])
+
+    """
+    samples, s, c, mask = _circfuncs_common(samples, high, low,
+                                            nan_policy=nan_policy)
+    # if samples is not ndarray, it is nan.
+    if not isinstance(samples, np.ndarray):
+        return np.nan
+    if mask is not None:
+        if mask.all():
+            return np.array(list)
+        else:
+            samples = samples[np.where(~mask)]
+    res = np.diff(samples, axis=axis) % (high - low)
+    res[res > (high - low)/2.0] -= high - low
     return res
 
 
